@@ -103,6 +103,19 @@ router.post("/add", (req, res) => {
   );
 });
 
+router.delete("/delete/:productId",  (req,res) => {
+  const findFilter = {productId: req.params.productId};
+  Products.findOneAndDelete(findFilter)
+    .exec()
+    .then(result => res.json({success: true, item: result}))
+    .catch(
+      err => {
+        console.error(err);
+        res.json({error: "Product not deleted"});
+      }
+    );
+});
+
 // TODO;  need to change it to app.post
 router.get("uploadFile", async (req, res) => {});
 
