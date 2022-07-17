@@ -50,7 +50,8 @@ router.post("/edit",  (req,res) => {
   const findFilter = {productId: req.body.productId};
   const updateValues = {
     productName: req.body.productName,
-    productCategory: req.body.productCategory
+    productCategory: req.body.productCategory,
+    dateOfManufacture: req.body.dateOfManufacture
   };
   Products.findOneAndUpdate(findFilter, updateValues, {returnOriginal: false})
     .exec()
@@ -91,7 +92,7 @@ router.post("/add", (req, res) => {
       // const new
       const savedItem = await newProduct.save();
       console.log("savedItem",  savedItem);
-      return res.json({success: true, items: savedItem});
+      return res.json({success: true, item: savedItem});
     }
   )
   .catch(
