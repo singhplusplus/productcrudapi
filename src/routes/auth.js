@@ -13,16 +13,31 @@ router.post("/register", (req, res) => {
   user.fullName = req.body.fullName;
   user.email = req.body.email;
   user.password = req.body.password;
-  user.save((err, result) => {
-    if (!err)
-      res.json({success: true, user: result});
-    else {
-      if (err.code == 11000)
-        res.status(422).send(['Duplicate email adrress found.']);
-      else
-        return next(err);
-    }
-  });
+  user.role = req.body.role;
+  user.save()
+    .then(
+      result => {
+        // console.log(result);
+        if (!result) {
+          return res.json({ success: false, message: 'User record not saved.' });
+        }
+        else {
+          return res.json({success: true, user: result })
+        }
+      }
+    )
+    .catch(
+      err => {
+        console.error(err);
+        if (err.code == 11000) {
+          return res.json({error: 'Duplicate email adrress found.'});
+        }
+        else {
+          return res.json({error: err});
+        }
+      }
+    );
+  
 });
 
 router.post("/login", (req, res) => {
@@ -40,15 +55,28 @@ router.post("/login", (req, res) => {
   )(req, res);
 });
 
-router.get("/profile", authenticate.verifyJwtToken, (req, res) => {
-  UserModel.findOne({ _id: req._id },
-    (err, user) => {
-      if (!user)
-        return res.status(404).json({ status: false, message: 'User record not found.' });
-      else
-        return res.status(200).json({ status: true, user: _.pick(user, ['fullName', 'email']) });
-    }
-  );
+router.get("/profile/:email", authenticate.verifyJwtToken, (req, res) => {
+  // console.log("req res", req, res);
+  const findFilter = {email: req.params.email};
+  // console.log("req email", req.body.email);
+  UserModel.findOne(findFilter)
+    .exec()
+    .then(
+      user => {
+        if (!user) {
+          return res.status(404).json({ success: false, message: 'User record not found.' });
+        }
+        else {
+          return res.status(200).json({success: true, user: _.pick(user, ['fullName', 'email', 'role']) })
+        }
+      }
+    )
+    .catch(
+      err => {
+        console.error(err);
+        res.status(500).json({error: err});
+      }
+    );
 });
 
 module.exports = router;

@@ -5,17 +5,21 @@ const jwt = require('jsonwebtoken');
 var userModel = new mongoose.Schema({
   fullName: {
       type: String,
-      required: 'Full name can\'t be empty'
+      required: "Full name cant be empty"
   },
   email: {
       type: String,
-      required: 'Email can\'t be empty',
+      required: "Email cant be empty",
       unique: true
   },
   password: {
       type: String,
-      required: 'Password can\'t be empty',
+      required: "Password cant be empty",
       minlength: [8, 'Password must be atleast 8 character long']
+  },
+  role: {
+    type: String,
+    default: 'Client'
   },
   saltSecret: String
 });
