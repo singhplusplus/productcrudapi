@@ -2,6 +2,8 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
+const constants = require('./../../appconstants.js');
+
 var userModel = new mongoose.Schema({
   fullName: {
       type: String,
@@ -46,8 +48,8 @@ userModel.methods.verifyPassword = function (password) {
 
 userModel.methods.generateJwt = function () {
   return jwt.sign({ email: this.email},
-      'JWT_SECRET',
-      {expiresIn: '30m'}
+      constants.config.JWT_SECRET,
+      {expiresIn: constants.config.JWT_TIMEOUT}
   );
 }
 

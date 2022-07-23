@@ -30,7 +30,7 @@ app.use((req, res, next) => {
 // error handler
 app.use((err, req, res, next) => {
   res.status(err.status || 500);
-  res.send(err)
+  res.json(err);
 });
 
 module.exports = app;

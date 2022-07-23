@@ -4,10 +4,12 @@
  * Module dependencies.
  */
 
-const app = require('../app');
+const app = require('./../app.js');
 const debug = require('debug')('inventorybackend:server');
 const http = require('http');
 const mongoose = require('mongoose');
+
+const constants = require('./../appconstants.js');
 
 /**
  * Get port from environment and store in Express.
@@ -26,7 +28,8 @@ const server = http.createServer(app);
  * DB connection && Listen on port
  */
 
-const dbURL = 'mongodb://localhost:27017/inventorymgmt';
+const dbURL = constants.config.DB_URL;
+
 async function connectDB(server, port, onError, onListening) {
   await mongoose.connect(dbURL, {useNewUrlParser: true});
   console.log("Connected to database");

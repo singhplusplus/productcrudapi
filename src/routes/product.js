@@ -17,7 +17,7 @@ router.get("/all", async (req, res) => {
     res.json({success: true, items});
   } catch (e) {
     console.error(e);
-    res.json({error: "ERROR No products found"});
+    res.json({success: false, error: "ERROR No products found"});
   }
 });
 
@@ -26,24 +26,29 @@ router.get("/search/:text", (req, res) => {
   try {
     // regex for case insensitive check
     const searchRegex = new RegExp(req.params.text, 'i');
-    const searchFilter = {
-      $or: [
-        {productName: searchRegex},
-        {productCategory: searchRegex}
-      ]
-    };
+    let searchFilter;
+    switch(req.query.searchBy) {
+      case 'name':
+        searchFilter = {productName: searchRegex};
+        break;
+      case 'category':
+        searchFilter = {productCategory: searchRegex};
+        break;
+      default:
+        console.error("Search by query parameter missing");
+    }
     Products.find(searchFilter)
       .exec()
       .then(result => res.json({success: true, items: result}))
       .catch(
         err => {
           console.error(err);
-          res.json({error: "ERROR No products found"});
+          res.json({success: false, error: "ERROR No products found"});
         }
-      );
+    );
   } catch (e) {
     console.error(e);
-    res.json({error: "ERROR No products found"});
+    res.json({success: false, error: "ERROR No products found"});
   }
 });
 
@@ -60,7 +65,7 @@ router.post("/edit",  (req,res) => {
     .catch(
       err => {
         console.error(err);
-        res.json({error: "ERROR Product not updated"});
+        res.json({success: false, error: "ERROR Product not updated"});
       }
     );
 });
@@ -96,14 +101,14 @@ router.post("/add", (req, res) => {
         return res.json({success: true, item: savedItem});
       } catch (err) {
         console.error(err);
-        return res.json({error: "ERROR No product added"});
+        return res.json({success: false, error: "ERROR No product added"});
       }
     }
   )
   .catch(
     err => {
       console.error(err);
-      return res.json({error: "ERROR No product added"});
+      return res.json({success: false, error: "ERROR No product added"});
     }
   );
 });
@@ -111,7 +116,7 @@ router.post("/add", (req, res) => {
 router.post("/addmultiple", (req, res) => {
   const prodArray = req.body.productsArray;
   if(!prodArray || !(prodArray.length > 0)) {
-    return res.json({error: "ERROR No products added"});
+    return res.json({success: false, error: "ERROR No products added"});
   }
   let seqId = prodArray.length;
   Counters.findOneAndUpdate(
@@ -141,14 +146,14 @@ router.post("/addmultiple", (req, res) => {
         return res.json({success: true, item: savedProductsList});
       } catch (err) {
         console.error(err);
-        return res.json({error: "ERROR No products added"});
+        return res.json({success: false, error: "ERROR No products added"});
       }
     }
   )
   .catch(
     err => {
       console.error(err);
-      res.json({error: "ERROR No products added"});
+      res.json({success: false, error: "ERROR No products added"});
     }
   );
 });
@@ -161,7 +166,7 @@ router.delete("/delete/:productId",  (req,res) => {
     .catch(
       err => {
         console.error(err);
-        res.json({error: "Product not deleted"});
+        res.json({success: false, error: "Product not deleted"});
       }
     );
 });
