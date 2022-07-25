@@ -11,7 +11,6 @@ passport.use(
       UserModel.findOne(
         {email: username},
         (err, user) => {
-          console.log("user", user);
           if(err)
             return done(err);
           else if(!user)

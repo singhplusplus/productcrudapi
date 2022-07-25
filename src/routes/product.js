@@ -1,22 +1,16 @@
 const express = require('express');
-const xlsx = require('xlsx');
 const Products = require('./../models/product.js');
 const Counters = require('./../models/counter.js');
-
+const moment = require('moment');
 const router = express.Router();
-
-// add update delete  getOnebyNameOrCategory
-
 
 // get all products
 router.get("/all", async (req, res) => {
   try {
-    // console.log("collection");
     const items = await Products.find({});
 
     res.json({success: true, items});
   } catch (e) {
-    console.error(e);
     res.json({success: false, error: "ERROR No products found"});
   }
 });
@@ -26,8 +20,9 @@ router.get("/search/:text", (req, res) => {
   try {
     // regex for case insensitive check
     const searchRegex = new RegExp(req.params.text, 'i');
+    const searchBy = req.query.searchby;
     let searchFilter;
-    switch(req.query.searchBy) {
+    switch(searchBy) {
       case 'name':
         searchFilter = {productName: searchRegex};
         break;
@@ -42,12 +37,38 @@ router.get("/search/:text", (req, res) => {
       .then(result => res.json({success: true, items: result}))
       .catch(
         err => {
-          console.error(err);
           res.json({success: false, error: "ERROR No products found"});
         }
     );
   } catch (e) {
-    console.error(e);
+    res.json({success: false, error: "ERROR No products found"});
+  }
+});
+
+// filter product list by date range
+router.get("/searchbydate", (req, res) => {
+  try {
+    // const searchRegex = new RegExp(req.params.text, 'i');
+    const startDate = req.query.startdate;
+    const endDate = req.query.enddate;
+    if(!startDate || !endDate) {
+      console.error("one of the date parameter missing");
+    }
+    const startDateISO = moment(startDate).format();
+    const endDateISO = moment(endDate).format();
+    const searchFilter = {
+      dateOfManufacture: { $gte: startDateISO, $lt: endDateISO }
+    };
+
+    Products.find(searchFilter)
+      .exec()
+      .then(result => res.json({success: true, items: result}))
+      .catch(
+        err => {
+          res.json({success: false, error: "ERROR No products found"});
+        }
+    );
+  } catch (e) {
     res.json({success: false, error: "ERROR No products found"});
   }
 });
@@ -64,7 +85,6 @@ router.post("/edit",  (req,res) => {
     .then(result => res.json({success: true, items: result}))
     .catch(
       err => {
-        console.error(err);
         res.json({success: false, error: "ERROR Product not updated"});
       }
     );
@@ -82,14 +102,12 @@ router.post("/add", (req, res) => {
     async (result) => {
       try {
         if(!result) { // the Counter document does not have productId: seq
-          console.log("result", result);
           const newSeq = new Counters({counterId: 'productId', seq: seqId});
           await newSeq.save();
         }
         else { // the Counter document updated with new productId: seq
           seqId = result.seq;
         }
-        // res.json({success: true, items: result})
         const newProduct = new Products({
           productId: seqId,
           productName: req.body.productName,
@@ -97,17 +115,14 @@ router.post("/add", (req, res) => {
           dateOfManufacture: req.body.dateOfManufacture
         });
         const savedItem = await newProduct.save();
-        console.log("savedItem",  savedItem);
         return res.json({success: true, item: savedItem});
       } catch (err) {
-        console.error(err);
         return res.json({success: false, error: "ERROR No product added"});
       }
     }
   )
   .catch(
     err => {
-      console.error(err);
       return res.json({success: false, error: "ERROR No product added"});
     }
   );
@@ -128,7 +143,6 @@ router.post("/addmultiple", (req, res) => {
     async (result) => {
       try {
         if(!result) { // the Counter document does not have productId: seq
-          console.log("result", result);
           const newSeq = new Counters({counterId: 'productId', seq: prodArray.length});
           await newSeq.save();
         }
@@ -138,21 +152,17 @@ router.post("/addmultiple", (req, res) => {
         // to add productId in each product document
         for (let index = prodArray.length - 1; index >= 0; index--) {
           const prod = prodArray[index];
-          prod.productId = seqId--;
+          prod.productId = seqId--; // dont use seqId after here its mutated
         }
         const savedProductsList = await Products.insertMany(prodArray);
-        
-        console.log("savedProductsList",  savedProductsList);
         return res.json({success: true, item: savedProductsList});
       } catch (err) {
-        console.error(err);
         return res.json({success: false, error: "ERROR No products added"});
       }
     }
   )
   .catch(
     err => {
-      console.error(err);
       res.json({success: false, error: "ERROR No products added"});
     }
   );
@@ -165,7 +175,6 @@ router.delete("/delete/:productId",  (req,res) => {
     .then(result => res.json({success: true, item: result}))
     .catch(
       err => {
-        console.error(err);
         res.json({success: false, error: "Product not deleted"});
       }
     );

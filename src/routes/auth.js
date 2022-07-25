@@ -17,7 +17,6 @@ router.post("/register", (req, res) => {
   user.save()
     .then(
       result => {
-        // console.log(result);
         if (!result) {
           return res.json({ success: false, error: err, message: 'Sorry! Something went wrong.'});
         }
@@ -28,7 +27,6 @@ router.post("/register", (req, res) => {
     )
     .catch(
       err => {
-        console.error(err);
         if (err.code == 11000) {
           return res.json({success: false, error: err, message: 'This email adrress is already registered.'});
         }
@@ -71,7 +69,6 @@ router.get("/profile/:email", authenticate.verifyJwtToken, (req, res) => {
     )
     .catch(
       err => {
-        console.error(err);
         res.status(500).json({success: false, error: err});
       }
     );
@@ -94,7 +91,6 @@ router.get("/adminprofile", (req, res) => {
     )
     .catch(
       err => {
-        console.error(err);
         res.json({success: false, message: err.message});
       }
     );
